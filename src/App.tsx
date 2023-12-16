@@ -5,9 +5,22 @@ import remarkMath from 'remark-math'
 import remarkRehype from 'remark-rehype'
 import rehypeStringify from 'rehype-stringify'
 import rehypeMathJax from 'rehype-mathjax/svg'
+// import { InlineMath } from 'react-katex'
 import rehypeKaTeX from 'rehype-katex'
 import 'katex/dist/katex.min.css'
 import { serverUrl, data } from './sources'
+
+export interface DataType {
+  requestID: string
+  end: boolean
+  messages: Message[]
+}
+
+export interface Message {
+  role: string
+  content: string
+  imageUrl?: string[]
+}
 
 function divideMathFromText(text: string) {
   const pattern = /\\\[(.*?)\\\]|\\\((.*?)\\\)|\$\$(.*?)\$\$/gs
@@ -55,8 +68,8 @@ export default function App() {
   const [rendererType, set_rendererType] = useState<'MathJax' | 'KaTeX'>(
     'MathJax'
   )
+  const [response, set_response] = useState<DataType | null>(null)
   const currentText = useRef('')
-  const allParts = useRef('')
   useEffect(() => {
     const socket = new WebSocket(serverUrl)
     socket.onopen = function (event) {
@@ -72,20 +85,21 @@ export default function App() {
         const data = messageData.value
         currentText.current += data
         const parts = divideMathFromText(currentText.current)
-        allParts.current = parts.map((part) => part.value).join('')
-        setAnswer(allParts.current)
+        setAnswer(parts.map((part) => part.value).join(''))
       }
       if (messageData.end) {
-        console.log('end', messageData)
+        set_response(messageData)
       }
     }
     return () => {
+      currentText.current = ''
       socket.close()
+      set_response(null)
     }
   }, [])
   useEffect(() => {
     window.scrollTo(0, document.body.scrollHeight)
-  })
+  }, [response, answer])
   return (
     <div className="math-wrap w-full whitespace-pre-line">
       <div
@@ -105,7 +119,7 @@ export default function App() {
           <button
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
             onClick={() => {
-              console.log('allParts', allParts.current)
+              console.log('allParts', answer)
             }}
           >
             파싱 출력
@@ -127,6 +141,40 @@ export default function App() {
             rendererType === 'KaTeX' ? rehypeKaTeX : rehypeMathJax,
             rehypeStringify,
           ]}
+          components={{
+            text: ({ node, children, ...props }) => {
+              return (
+                <text {...props}>
+                  <span>{children}</span>
+                </text>
+              )
+            },
+            p: ({ node, children, ...props }) => {
+              return (
+                <p {...props}>
+                  {typeof children === 'string' ? (
+                    <ReactMarkdown
+                      remarkPlugins={[remarkParse, remarkMath]}
+                      rehypePlugins={[
+                        remarkRehype,
+                        rehypeKaTeX,
+                        rehypeStringify,
+                      ]}
+                      components={{
+                        p: ({ node, ...props }) => {
+                          return <span {...props} />
+                        },
+                      }}
+                    >
+                      {children}
+                    </ReactMarkdown>
+                  ) : (
+                    children
+                  )}
+                </p>
+              )
+            },
+          }}
         >
           {answer}
         </ReactMarkdown>
