@@ -21,7 +21,7 @@ function divideMathFromText(text: string) {
     }
     let value = ''
     if (match[1]) {
-      // \\[ ... \\] -> $$ ... $$
+      // \\[ ... \\] -> $ ... $
       value = `$${match[1]}$`
     } else if (match[2]) {
       // \\( ... \\) -> $ ... $
