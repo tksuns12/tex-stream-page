@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.math-wrap svg {
+  display: inline-block;
+  padding: 8px 2px;
+  box-sizing: content-box;
+}
+.math-wrap mjx-container {
+  display: inline;
+  vertical-align: middle;
+}
