@@ -1,12 +1,11 @@
-import React, { Fragment, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import remarkParse from 'remark-parse'
 import ReactMarkdown from 'react-markdown'
 import remarkMath from 'remark-math'
 import remarkRehype from 'remark-rehype'
 import rehypeStringify from 'rehype-stringify'
 import rehypeMathJax from 'rehype-mathjax/svg'
-// import { InlineMath } from 'react-katex'
-// import rehypeKaTeX from 'rehype-katex'
+import rehypeKaTeX from 'rehype-katex'
 import 'katex/dist/katex.min.css'
 import { serverUrl, data } from './sources'
 
@@ -53,12 +52,9 @@ function divideMathFromText(text: string) {
 }
 export default function App() {
   const [answer, setAnswer] = useState('')
-  // const [parts, setParts] = useState<
-  //   {
-  //     type: string
-  //     value: string
-  //   }[]
-  // >([])
+  const [rendererType, set_rendererType] = useState<'MathJax' | 'KaTeX'>(
+    'MathJax'
+  )
   const currentText = useRef('')
   const allParts = useRef('')
   useEffect(() => {
@@ -76,7 +72,6 @@ export default function App() {
         const data = messageData.value
         currentText.current += data
         const parts = divideMathFromText(currentText.current)
-        // setParts(parts)
         allParts.current = parts.map((part) => part.value).join('')
         setAnswer(allParts.current)
       }
@@ -97,35 +92,41 @@ export default function App() {
         className={`prose prose-sm prose-slate w-full 
       max-w-full md:prose-base lg:prose-lg whitespace-pre-line`}
       >
-        {!answer && <>{'답변 대기중 ...'}</>}
-        {/* {parts.map((part, index) => {
-          return (
-            <Fragment key={index}>
-              {part.type === 'Math' ? (
-                <ReactMarkdown
-                  remarkPlugins={[remarkParse, remarkMath]}
-                  rehypePlugins={[remarkRehype, rehypeMathJax, rehypeStringify]}
-                >
-                  {part.value}
-                </ReactMarkdown>
-              ) : part.type === 'Waiting' ? (
-                <span className="text-red-600">{part.value}</span>
-              ) : (
-                <span className="text-blue-600">
-                  <ReactMarkdown
-                    remarkPlugins={[remarkParse, remarkMath]}
-                    rehypePlugins={[remarkRehype, rehypeKaTeX, rehypeStringify]}
-                  >
-                    {part.value}
-                  </ReactMarkdown>
-                </span>
-              )}
-            </Fragment>
-          )
-        })} */}
+        <div className="flex gap-4">
+          <button
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            onClick={() => {
+              console.log('currentText', currentText.current)
+            }}
+          >
+            원본 출력
+          </button>
+
+          <button
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            onClick={() => {
+              console.log('allParts', allParts.current)
+            }}
+          >
+            파싱 출력
+          </button>
+          <button
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            onClick={() => {
+              set_rendererType(rendererType === 'MathJax' ? 'KaTeX' : 'MathJax')
+            }}
+          >
+            타입 변경 ({rendererType} 사용 중)
+          </button>
+        </div>
+        {!answer && <div>{`(${rendererType} 테스트) 답변 대기중 ...`}</div>}
         <ReactMarkdown
           remarkPlugins={[remarkParse, remarkMath]}
-          rehypePlugins={[remarkRehype, rehypeMathJax, rehypeStringify]}
+          rehypePlugins={[
+            remarkRehype,
+            rendererType === 'KaTeX' ? rehypeKaTeX : rehypeMathJax,
+            rehypeStringify,
+          ]}
         >
           {answer}
         </ReactMarkdown>

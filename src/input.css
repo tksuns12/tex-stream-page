@@ -10,4 +10,8 @@
 .math-wrap mjx-container {
   display: inline;
   vertical-align: middle;
+  color: rgb(98, 0, 255);
+}
+.math-wrap span.katex {
+  color: rgb(98, 0, 255);
 }
