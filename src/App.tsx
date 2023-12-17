@@ -167,7 +167,7 @@ export default function App() {
           <button
             className="px-4 py-2 font-bold text-white bg-blue-500 rounded hover:bg-blue-700"
             onClick={() => {
-              console.log('currentText', currentText.current)
+              console.log('currentText', JSON.stringify(currentText.current))
             }}
           >
             원본 출력(console)
@@ -176,7 +176,7 @@ export default function App() {
           <button
             className="px-4 py-2 font-bold text-white bg-blue-500 rounded hover:bg-blue-700"
             onClick={() => {
-              console.log('allParts', answer)
+              console.log('allParts', JSON.stringify(answer))
             }}
           >
             파싱 출력(console)
@@ -212,11 +212,10 @@ export default function App() {
             p: ({ node, children, ...props }) => {
               return (
                 <p {...props}>
-                  {typeof children === 'string' ? (
-                    <KatexComp math={children} /> // 처리되지 않은 수식까지 처리 하기 위해서
-                  ) : (
-                    children
-                  )}
+                  {typeof children === 'string'
+                    ? // <KatexComp math={children} /> // 처리되지 않은 수식까지 처리 하려면 이렇게
+                      children
+                    : children}
                 </p>
               )
             },
