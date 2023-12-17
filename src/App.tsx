@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, {
+  Fragment,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
 import remarkParse from 'remark-parse'
 import ReactMarkdown from 'react-markdown'
 import remarkMath from 'remark-math'
@@ -22,31 +28,42 @@ export interface Message {
   imageUrl?: string[]
 }
 
-function divideMathFromText(text: string) {
+export type ParsedType = 'text' | 'MathInline' | 'MathBlock' | 'Waiting'
+export type PartItem = {
+  type: ParsedType
+  value: string
+}
+
+function divideMathFromText(text: string): PartItem[] {
   const pattern = /\\\[(.*?)\\\]|\\\((.*?)\\\)|\$(.*?)\$|\$\$(.*?)\$\$/gs
   text = text.replace(/₩/g, '\\')
   let lastIndex = 0
-  const parts = []
+  const parts: PartItem[] = []
   let match
   while ((match = pattern.exec(text)) !== null) {
     if (match.index > lastIndex) {
       parts.push({ type: 'text', value: text.slice(lastIndex, match.index) })
     }
     let value = ''
+    let type: 'text' | 'MathInline' | 'MathBlock' | 'Waiting' = 'MathInline'
     if (match[1]) {
       // \\[ ... \\] -> $ ... $
-      value = `$${match[1]}$`
+      type = 'MathBlock'
+      value = `$$${match[1]}$$`
     } else if (match[2]) {
       // \\( ... \\) -> $ ... $
+      type = 'MathInline'
       value = `$${match[2]}$`
     } else if (match[3]) {
       // $ ... $ -> $ ... $
+      type = 'MathInline'
       value = `$${match[3]}$`
     } else if (match[4]) {
       // $$ ... $$ -> $ ... $
-      value = `$${match[4]}$`
+      type = 'MathBlock'
+      value = `$$${match[4]}$$`
     }
-    parts.push({ type: 'Math', value })
+    parts.push({ type, value })
     console.log('parts', parts)
     lastIndex = pattern.lastIndex
   }
@@ -75,6 +92,7 @@ export default function App() {
   const [response, set_response] = useState<DataType | null>(null)
   const currentText = useRef('')
   const [currentSocket, set_currentSocket] = useState<WebSocket | null>(null)
+  const [currentParts, set_currentParts] = useState<PartItem[]>([])
   const getWithSocket = useCallback((socket: WebSocket) => {
     set_clientMessage(`답변 대기중 ...`)
     socket.send(JSON.stringify(data))
@@ -94,6 +112,7 @@ export default function App() {
         const data = messageData.value
         currentText.current += data
         const parts = divideMathFromText(currentText.current)
+        set_currentParts(parts)
         setAnswer(parts.map((part) => part.value).join(''))
       }
       if (messageData.end) {
@@ -116,20 +135,20 @@ export default function App() {
     window.scrollTo(0, document.body.scrollHeight)
   }, [response, answer])
   return (
-    <div className="math-wrap w-full whitespace-pre-line">
+    <div className="w-full whitespace-pre-line math-wrap">
       <div
         className={`prose prose-sm prose-slate w-full 
       max-w-full md:prose-base lg:prose-lg whitespace-pre-line`}
       >
-        <div className="flex gap-4 items-center sticky top-0 bg-white shadow-sm shadow-gray-200 p-2">
+        <div className="sticky top-0 z-20 flex items-center gap-4 p-2 bg-white shadow-sm shadow-gray-200">
           <button
-            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+            className="px-4 py-2 font-bold text-white bg-red-500 rounded hover:bg-red-700"
             onClick={getAnswer}
           >
             로컬 테스트
           </button>
           <button
-            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+            className="px-4 py-2 font-bold text-white bg-red-500 rounded hover:bg-red-700"
             onClick={() => {
               if (!currentSocket) return
               currentText.current = ''
@@ -140,7 +159,7 @@ export default function App() {
             시작
           </button>
           <button
-            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+            className="px-4 py-2 font-bold text-white bg-red-500 rounded hover:bg-red-700"
             onClick={() => {
               if (!currentSocket) return
               currentSocket.close()
@@ -149,7 +168,7 @@ export default function App() {
             종료
           </button>
           <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            className="px-4 py-2 font-bold text-white bg-blue-500 rounded hover:bg-blue-700"
             onClick={() => {
               console.log('currentText', currentText.current)
             }}
@@ -158,7 +177,7 @@ export default function App() {
           </button>
 
           <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            className="px-4 py-2 font-bold text-white bg-blue-500 rounded hover:bg-blue-700"
             onClick={() => {
               console.log('allParts', answer)
             }}
@@ -166,7 +185,7 @@ export default function App() {
             파싱 출력(console)
           </button>
           <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            className="px-4 py-2 font-bold text-white bg-blue-500 rounded hover:bg-blue-700"
             onClick={() => {
               set_rendererType(rendererType === 'MathJax' ? 'KaTeX' : 'MathJax')
             }}
@@ -175,6 +194,9 @@ export default function App() {
           </button>
           <div>{`(렌더링 타입: ${rendererType}) ${clientMessage}`}</div>
         </div>
+        {/* <KatexComp
+          math={``}
+        /> */}
         <ReactMarkdown
           remarkPlugins={[remarkParse, remarkMath]}
           rehypePlugins={[
@@ -191,7 +213,15 @@ export default function App() {
               )
             },
             p: ({ node, children, ...props }) => {
-              return <p {...props}>{children}</p>
+              return (
+                <p {...props}>
+                  {typeof children === 'string' ? (
+                    <KatexComp math={children} /> // 처리되지 않은 수식까지 처리 하기 위해서
+                  ) : (
+                    children
+                  )}
+                </p>
+              )
             },
           }}
         >
