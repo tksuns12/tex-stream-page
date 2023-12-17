@@ -15,3 +15,7 @@
 .math-wrap span.katex {
   color: rgb(98, 0, 255);
 }
+.math-wrap span.katex .hangul_fallback {
+  color: black;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
