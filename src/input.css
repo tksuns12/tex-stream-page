@@ -19,3 +19,8 @@
   color: black;
   font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
 }
+
+.math-wrap span.katex .base {
+  white-space: initial;
+  width: auto;
+}

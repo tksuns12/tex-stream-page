@@ -64,7 +64,6 @@ function divideMathFromText(text: string): PartItem[] {
       value = `$$${match[4]}$$`
     }
     parts.push({ type, value })
-    console.log('parts', parts)
     lastIndex = pattern.lastIndex
   }
   if (lastIndex < text.length) {
@@ -92,7 +91,6 @@ export default function App() {
   const [response, set_response] = useState<DataType | null>(null)
   const currentText = useRef('')
   const [currentSocket, set_currentSocket] = useState<WebSocket | null>(null)
-  const [currentParts, set_currentParts] = useState<PartItem[]>([])
   const getWithSocket = useCallback((socket: WebSocket) => {
     set_clientMessage(`답변 대기중 ...`)
     socket.send(JSON.stringify(data))
@@ -112,7 +110,6 @@ export default function App() {
         const data = messageData.value
         currentText.current += data
         const parts = divideMathFromText(currentText.current)
-        set_currentParts(parts)
         setAnswer(parts.map((part) => part.value).join(''))
       }
       if (messageData.end) {

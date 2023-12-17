@@ -8,9 +8,13 @@ function removeDelimiters(math: string) {
   removed = removed.replace(/\\\[(.*?)\\\]/gm, '$1')
   return removed
 }
-function escapeDollar(math: string) {
-  // return math.replace(/\$/g, '\\$')
-  return math.replace(/\$/g, '') // remove dollar sign
+const disposeDollar = {
+  escapeDollar: function (math: string) {
+    return math.replace(/\$/g, '\\$')
+  },
+  removeDollar: function (math: string) {
+    return math.replace(/\$/g, '')
+  },
 }
 function spaceMath(math: string) {
   return math.replace(/\s/g, '\\space ')
@@ -18,24 +22,34 @@ function spaceMath(math: string) {
 export default function KatexComp({
   math,
   isBlock,
+  options = {
+    // 순서대로 동작함
+    deleteDelimiters: true,
+    dollar: 'escapeDollar',
+  },
 }: {
   math: string
   isBlock?: boolean
+  options?: {
+    deleteDelimiters?: boolean
+    dollar?: 'escapeDollar' | 'removeDollar'
+  }
 }) {
+  const handlerName = options?.dollar ?? 'escapeDollar'
   const mathRef = useRef(null)
   useEffect(() => {
     if (mathRef.current) {
       katex.render(
-        spaceMath(escapeDollar(removeDelimiters(math))),
+        spaceMath(
+          disposeDollar[handlerName](
+            options.deleteDelimiters ? removeDelimiters(math) : math
+          )
+        ),
         mathRef.current,
         {
           throwOnError: false,
           displayMode: isBlock,
-          strict: (
-            errorCode: unknown,
-            errorMessage: unknown,
-            token: unknown
-          ) => {
+          strict: (errorCode: unknown) => {
             if (errorCode === 'unicodeTextInMathMode') {
               return 'ignore'
             }
