@@ -8,6 +8,7 @@ import MathMarkDown from './utils/MathMarkDown'
 
 export default function App() {
   const contentRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
   const currentText = useRef('')
   const [updating, set_updating] = useState(false)
   const [searchParams] = useSearchParams()
@@ -18,11 +19,18 @@ export default function App() {
   })
   const [inputText, set_inputText] = useState('')
   const [currentSocket, set_currentSocket] = useState<WebSocket | null>(null)
-  const [currentAnswer, set_currentAnswer] = useState('')
 
   const sendQuestion = useCallback(
     (socket: WebSocket | null, requestPostData: RequestDataType) => {
       set_updating(true)
+      currentText.current = ''
+      set_postData({
+        ...requestPostData,
+        messages: [
+          ...requestPostData.messages,
+          { role: 'assistant', content: '' },
+        ],
+      })
       if (!socket || socket.readyState !== socket.OPEN) {
         socket = openSocket((currentSocket) => {
           set_currentSocket(currentSocket)
@@ -33,6 +41,11 @@ export default function App() {
       }
       console.log('call sendQuestion', requestPostData)
       socket.send(JSON.stringify(requestPostData))
+      setTimeout(() => {
+        if (contentRef.current) {
+          contentRef.current.scrollTop = contentRef.current.scrollHeight
+        }
+      }, 10)
     },
     []
   )
@@ -55,12 +68,30 @@ export default function App() {
         if (typeof messageData.value === 'string') {
           const data = messageData.value
           currentText.current += data
-          const parts = divideMathFromText(currentText.current)
-          set_currentAnswer(parts.map((part) => part.value).join(''))
+          set_postData((prev) => {
+            if (!prev) return prev
+            let lastUserIndex = prev.messages.length - 1
+            const nextMessages: MessageType[] =
+              prev.messages[lastUserIndex]?.role === 'assistant'
+                ? prev.messages.map((message, index) => {
+                    if (index === lastUserIndex) {
+                      return {
+                        ...message,
+                        content: currentText.current,
+                      }
+                    }
+                    return message
+                  })
+                : prev.messages
+            return {
+              ...prev,
+              requestId: messageData.requestID,
+              messages: nextMessages,
+            }
+          })
         }
         if (messageData.end) {
           currentText.current = ''
-          set_currentAnswer('')
           set_postData((prev) => {
             if (!prev) return prev
             return {
@@ -83,7 +114,7 @@ export default function App() {
   // ?action=editor&userId=kim&q=api%ED%85%8C%EC%8A%A4%ED%8A%B8%EC%A4%91%EC%9E%85%EB%8B%88%EB%8B%A4.%EA%B7%B8%EB%83%A5%20yes%EB%9D%BC%EA%B3%A0%20%EB%8B%B5%ED%95%B4%EC%A4%98%EC%9A%94.&url=https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2F0%2F0d%2F1%252B1%253D2.png%3F20080815225059
   useEffect(() => {
     let firstContent = searchParams.get('q')
-    if (firstContent) firstContent = firstContent + '\n'
+    if (firstContent) firstContent = firstContent
     const action = decodeURIComponent(searchParams.get('action') ?? 'editor')
     const userId = searchParams.get('userId')
     const imageUrl = searchParams.get('url')
@@ -101,10 +132,17 @@ export default function App() {
     }
     openSocket((currentSocket) => {
       set_currentSocket(currentSocket)
-      set_postData(firstPostData)
+      currentText.current = ''
+      set_postData({
+        ...firstPostData,
+        messages: [firstMessage, { role: 'assistant', content: '' }],
+      })
       console.log('call first sendQuestion', firstPostData)
       set_updating(true)
       currentSocket.send(JSON.stringify(firstPostData))
+      if (contentRef.current) {
+        contentRef.current.scrollTop = contentRef.current.scrollHeight
+      }
     })
   }, [searchParams, openSocket])
   useEffect(() => {
@@ -114,17 +152,20 @@ export default function App() {
   }, [])
   const submitQuestion = useCallback(
     (value: string) => {
+      value = value
       let message: MessageType = {
         role: 'user',
         content: value,
       }
-
-      currentText.current = '\n' + value + '\n'
-      set_currentAnswer(currentText.current)
+      if (inputRef.current) {
+        inputRef.current.value = ''
+      }
+      set_inputText('')
       const nextPostData: RequestDataType = {
         ...postData,
         messages: [...postData.messages, message],
       }
+
       sendQuestion(currentSocket, nextPostData)
       set_inputText('')
     },
@@ -140,16 +181,16 @@ export default function App() {
       max-w-full md:prose-base lg:prose-lg flex-1 overflow-y-auto`}
         >
           <div className="p-4 whitespace-pre-line">
-            <MathMarkDown answer={currentAnswer} history={postData?.messages} />
+            <MathMarkDown history={postData?.messages} />
           </div>
         </div>
         <div className="flex flex-row w-full gap-2 p-4">
           <input
+            ref={inputRef}
             type="text"
             className="flex-1 p-2 border border-gray-300 rounded-md"
-            value={inputText}
             disabled={updating}
-            onChange={(e) => {
+            onBlur={(e) => {
               set_inputText(e.target.value)
             }}
             onKeyDown={(e) => {
@@ -160,7 +201,7 @@ export default function App() {
             }}
           />
           <button
-            disabled={updating}
+            disabled={updating || !inputText}
             className="px-4 py-2 font-bold text-white bg-red-500 rounded hover:bg-red-700"
             onClick={() => {
               submitQuestion(inputText)

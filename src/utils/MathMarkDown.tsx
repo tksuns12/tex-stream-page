@@ -16,20 +16,21 @@ const parseToMath = (content: string) => {
 
 export default function MathMarkDown({
   history = [],
-  answer,
 }: {
   history?: MessageType[]
-  answer: string
 }) {
   const answerMessage = useMemo(() => {
-    if (!history) return `\n` + answer + `\n`
     const historyMessages = history
       .map((message) => {
-        return message.content ? parseToMath(message.content) : ''
+        if (message.role === 'user') {
+          return '#### ' + parseToMath(message.content)
+        } else {
+          return parseToMath(message.content)
+        }
       })
       .join(` \n `)
-    return historyMessages + answer + `\n`
-  }, [answer, history])
+    return historyMessages
+  }, [history])
   return (
     <ReactMarkdown
       remarkPlugins={[remarkParse, remarkMath]}
