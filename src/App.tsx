@@ -83,6 +83,7 @@ export default function App() {
                     return message
                   })
                 : prev.messages
+            console.log('nextMessages', nextMessages)
             return {
               ...prev,
               requestId: messageData.requestID,
@@ -91,6 +92,7 @@ export default function App() {
           })
         }
         if (messageData.end) {
+          console.log('messageData', messageData)
           currentText.current = ''
           set_postData((prev) => {
             if (!prev) return prev

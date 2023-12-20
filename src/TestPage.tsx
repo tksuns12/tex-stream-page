@@ -13,9 +13,11 @@ import rehypeStringify from 'rehype-stringify'
 import rehypeMathJax from 'rehype-mathjax/svg'
 import rehypeKaTeX from 'rehype-katex'
 import 'katex/dist/katex.min.css'
-import { serverUrl, data, testAnswer } from './sources'
+import { serverUrl, data, testAnswer, lastMessage } from './sources'
 import { divideMathFromText } from './utils/parsers'
 import { ResponseType } from './types'
+
+const testMessage = lastMessage
 
 export default function TestPage() {
   const [answer, setAnswer] = useState('')
@@ -73,8 +75,8 @@ export default function TestPage() {
     }
   }, [openSocket])
   function getAnswer() {
-    currentText.current = testAnswer
-    const parts = divideMathFromText(testAnswer)
+    currentText.current = testMessage
+    const parts = divideMathFromText(testMessage)
     setAnswer(parts.map((part) => part.value).join(''))
   }
   useEffect(() => {

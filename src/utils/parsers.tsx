@@ -15,19 +15,19 @@ export function divideMathFromText(text: string): PartItem[] {
     if (match[1]) {
       // \\[ ... \\] -> $ ... $
       type = 'MathBlock'
-      value = `$$${match[1]}$$`
+      value = `$$\n${match[1]}\n$$`
     } else if (match[2]) {
       // \\( ... \\) -> $ ... $
       type = 'MathInline'
-      value = `$${match[2]}$`
+      value = `$ ${match[2]} $`
     } else if (match[3]) {
       // $ ... $ -> $ ... $
       type = 'MathInline'
-      value = `$${match[3]}$`
+      value = `$ ${match[3]} $`
     } else if (match[4]) {
       // $$ ... $$ -> $ ... $
       type = 'MathBlock'
-      value = `$$${match[4]}$$`
+      value = `$$\n${match[4]}\n$$`
     }
     parts.push({ type, value })
     lastIndex = pattern.lastIndex
