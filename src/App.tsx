@@ -34,12 +34,10 @@ export default function App() {
       if (!socket || socket.readyState !== socket.OPEN) {
         socket = openSocket((currentSocket) => {
           set_currentSocket(currentSocket)
-          console.log('call sendQuestion', requestPostData)
           currentSocket.send(JSON.stringify(requestPostData))
         })
         return
       }
-      console.log('call sendQuestion', requestPostData)
       socket.send(JSON.stringify(requestPostData))
       setTimeout(() => {
         if (contentRef.current) {
@@ -54,15 +52,10 @@ export default function App() {
     (cb?: (socket: WebSocket) => void) => {
       const socket = new WebSocket(serverUrl)
       socket.onopen = function (event) {
-        console.log('소켓 연결됨')
         cb && cb(socket)
       }
-      socket.onerror = function (event) {
-        console.log('소켓 에러', event)
-      }
-      socket.onclose = function (event) {
-        console.log('소켓 닫힘')
-      }
+      socket.onerror = function (event) {}
+      socket.onclose = function (event) {}
       socket.onmessage = function (event) {
         const messageData = JSON.parse(event.data)
         if (typeof messageData.value === 'string') {
@@ -83,7 +76,6 @@ export default function App() {
                     return message
                   })
                 : prev.messages
-            console.log('nextMessages', nextMessages)
             return {
               ...prev,
               requestId: messageData.requestID,
@@ -92,7 +84,6 @@ export default function App() {
           })
         }
         if (messageData.end) {
-          console.log('messageData', messageData)
           currentText.current = ''
           set_postData((prev) => {
             if (!prev) return prev
@@ -139,7 +130,6 @@ export default function App() {
         ...firstPostData,
         messages: [firstMessage, { role: 'assistant', content: '' }],
       })
-      console.log('call first sendQuestion', firstPostData)
       set_updating(true)
       currentSocket.send(JSON.stringify(firstPostData))
       if (contentRef.current) {
