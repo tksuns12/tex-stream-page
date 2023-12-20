@@ -19,6 +19,6 @@
     "noEmit": false, // 출력 파일 생성 안 함 (Babel 등 다른 도구가 처리할 경우)
     "jsx": "react" // JSX 코드를 React 요소로 변환
   },
-  "include": ["src/**/*"], // 컴파일할 파일들의 위치
+  "include": ["src/**/*", "global.d.ts"], // 컴파일할 파일들의 위치
   "exclude": ["node_modules", "dist"] // 컴파일에서 제외할 파일들의 위치
 }

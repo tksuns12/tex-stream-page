@@ -43,6 +43,7 @@ module.exports = (env) => {
       static: {
         directory: path.join(__dirname, 'public'),
       },
+      historyApiFallback: true,
       compress: true,
       port: 3090,
       allowedHosts: ['dev.fearnot.kr', 'localhost', '127.0.0.1', 'dev.obj.kr'],
