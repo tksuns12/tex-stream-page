@@ -98,6 +98,11 @@ export default function App() {
         if (contentRef.current) {
           contentRef.current.scrollTop = contentRef.current.scrollHeight
         }
+        if (inputRef.current) {
+          setTimeout(() => {
+            if (inputRef.current) inputRef.current.focus()
+          }, 10)
+        }
       }
       return socket
     },
