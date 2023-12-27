@@ -5,7 +5,14 @@ import { useSearchParams } from 'react-router-dom'
 import { MessageType, RequestDataType, isActionType } from './types'
 import MathMarkDown from './utils/MathMarkDown'
 
-export default function App() {
+
+
+// window 객체에 yourJavascriptFunction 함수 추가
+window.callGPT = function(data: RequestDataType) {
+  data
+  // 여기에 필요한 로직을 추가할 수 있음
+};
+export default function WepApp() {
   const contentRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const currentText = useRef('')
