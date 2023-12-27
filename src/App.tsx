@@ -5,7 +5,6 @@ import { MessageType, RequestDataType, isActionType } from './types'
 import MathMarkDown from './utils/MathMarkDown'
 import { useAppDispatch, useAppSelector } from './hooks/reduxHooks'
 import { addAssistantMessage, selectMessage } from './store/messageSlice'
-import { send } from 'process'
 
 export default function App({data}: {data: RequestDataType}) {
   const dispatch = useAppDispatch()
@@ -84,6 +83,7 @@ export default function App({data}: {data: RequestDataType}) {
               messages: nextMessages,
             }
           })
+          window.sendBodyScrollHeight()
         }
         if (messageData.end) {
           currentText.current = ''
@@ -100,6 +100,7 @@ export default function App({data}: {data: RequestDataType}) {
             requestId: messageData.requestID
           }))
           set_updating(false)
+          window.sendBodyScrollHeight()
         }
         if (contentRef.current) {
           contentRef.current.scrollTop = contentRef.current.scrollHeight

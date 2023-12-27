@@ -20,6 +20,15 @@ window.callGPT = function(data) {
 window.addMessage = function(data) {
   store.dispatch(addMessage(data))
 }
+window.sendBodyScrollHeight = function() {
+  const height = document.body.scrollHeight
+  if(!window.Flutter) return
+  window.Flutter.postMessage(JSON.stringify({type: 'scrollHeight', height}))
+}
+window.onload = function() {
+  window.sendBodyScrollHeight()
+}
+
 // !TEST 영역
 // const testButton = document.createElement('button')
 // testButton.innerText = 'test 버튼'

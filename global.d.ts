@@ -1,4 +1,4 @@
-type ApiActionType = typeof actionTypes[number]
+type ApiActionType = "editor" | "vision" | "thread" | "threads1"
 type MessageType = {
   role: "user" | "assistant"
   content: string
@@ -12,6 +12,12 @@ type RequestDataType = {
   messages: MessageType[]
 }
 declare Window & typeof globalThis; {
- var callGPT: (data: RequestDataType) => void;
- var addMessage: (data: MessageType) => void
+  var callGPT: (data: RequestDataType) => void;
+  var addMessage: (data: MessageType) => void
+
+  var sendBodyScrollHeight: () => void
+
+  var Flutter: {
+    postMessage:((data: any) => void)
+  }
 };
