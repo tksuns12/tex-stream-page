@@ -3,6 +3,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const postcssNormalize = require('postcss-normalize')
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin')
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 const postcssConfig = {
   loader: 'postcss-loader',
@@ -25,10 +26,7 @@ module.exports = (env) => {
     entry: './src/index.tsx',
     output: {
       filename: 'bundle.js',
-      path: path.resolve(__dirname, isProduction ? 'lib' : 'dist'),
-      library: 'playground',
-      libraryTarget: 'umd', // UMD 형식으로 라이브러리를 번들링
-      globalObject: 'this', // UMD 라이브러리에서의 전역 객체 설정
+      path: path.resolve(__dirname, 'dist'),
       clean: true,
     },
     plugins: [
@@ -38,6 +36,7 @@ module.exports = (env) => {
         template: './public/index.html',
         filename: 'index.html',
       }),
+      // new BundleAnalyzerPlugin()
     ],
     devServer: {
       static: {
@@ -45,8 +44,8 @@ module.exports = (env) => {
       },
       historyApiFallback: true,
       compress: true,
-      port: 3090,
-      allowedHosts: ['dev.fearnot.kr', 'localhost', '127.0.0.1', 'dev.obj.kr'],
+      port: 3000,
+      allowedHosts: ['localhost', '127.0.0.1'],
     },
     module: {
       rules: [
