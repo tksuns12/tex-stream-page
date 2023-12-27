@@ -17,6 +17,6 @@ postMessage(JSON.stringify({type: 'scrollHeight', height}))
 ---
 
 
-__!TEST 영역 주석은 Flutter에서 동작하길 원하는 코드는 웹에서 구현한 것__
+__TEST 영역 주석은 Flutter에서 동작하길 원하는 코드는 웹에서 구현한 것__
 
-__postMessage는 Flutter에서 onMessageReceived로 받을 겁니다. type이 scrollHeight인건 body의 높이를 계속 올려줄겁니다.__
+__postMessage는 Flutter에서 onMessageReceived로 받을 겁니다.__
