@@ -1,16 +1,19 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import 'katex/dist/katex.min.css'
 import { serverUrl } from './sources'
-import { useSearchParams } from 'react-router-dom'
 import { MessageType, RequestDataType, isActionType } from './types'
 import MathMarkDown from './utils/MathMarkDown'
+import { useAppDispatch, useAppSelector } from './hooks/reduxHooks'
+import { addAssistantMessage, selectMessage } from './store/messageSlice'
+import { send } from 'process'
 
-export default function App() {
+export default function App({data}: {data: RequestDataType}) {
+  const dispatch = useAppDispatch()
+  const globalMessage = useAppSelector(selectMessage)
   const contentRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const currentText = useRef('')
   const [updating, set_updating] = useState(false)
-  const [searchParams] = useSearchParams()
   const [postData, set_postData] = useState<RequestDataType>({
     action: 'editor',
     userId: '',
@@ -92,6 +95,10 @@ export default function App() {
               messages: messageData.messages,
             }
           })
+          dispatch(addAssistantMessage({
+            messages: messageData.messages,
+            requestId: messageData.requestID
+          }))
           set_updating(false)
         }
         if (contentRef.current) {
@@ -105,26 +112,25 @@ export default function App() {
       }
       return socket
     },
-    [searchParams]
+    []
   )
-  // test params
-  // ?action=editor&userId=kim&q=api%ED%85%8C%EC%8A%A4%ED%8A%B8%EC%A4%91%EC%9E%85%EB%8B%88%EB%8B%A4.%EA%B7%B8%EB%83%A5%20yes%EB%9D%BC%EA%B3%A0%20%EB%8B%B5%ED%95%B4%EC%A4%98%EC%9A%94.&url=https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2F0%2F0d%2F1%252B1%253D2.png%3F20080815225059
+  
   useEffect(() => {
-    let firstContent = searchParams.get('q')
-    if (firstContent) firstContent = firstContent
-    const action = decodeURIComponent(searchParams.get('action') ?? 'editor')
-    const userId = searchParams.get('userId')
-    const imageUrl = searchParams.get('url')
-    if (!firstContent || !imageUrl || !userId) return
+    if (!data) return
+    const action = data.action ?? 'editor'
+    const userId = data.userId
+    const imageUrl = data.messages?.[0]?.imageUrl?.[0]
+    const firstContent = data.messages?.[0]?.content ?? ''
+    if (!imageUrl || !userId || !firstContent) return
     if (!isActionType(action)) return
     const firstMessage: MessageType = {
       role: 'user',
-      content: decodeURIComponent(firstContent),
-      imageUrl: [decodeURIComponent(imageUrl)],
+      content: firstContent,
+      imageUrl: [imageUrl],
     }
     const firstPostData: RequestDataType = {
       action,
-      userId: decodeURIComponent(userId),
+      userId: userId,
       messages: [firstMessage],
     }
     openSocket((currentSocket) => {
@@ -140,7 +146,7 @@ export default function App() {
         contentRef.current.scrollTop = contentRef.current.scrollHeight
       }
     })
-  }, [searchParams, openSocket])
+  }, [openSocket])
   useEffect(() => {
     return () => {
       currentText.current = ''
@@ -161,12 +167,19 @@ export default function App() {
         ...postData,
         messages: [...postData.messages, message],
       }
-
-      sendQuestion(currentSocket, nextPostData)
+      // sendQuestion(currentSocket, nextPostData)
+      window.addMessage(message)
       set_inputText('')
     },
     [currentSocket, postData, sendQuestion]
   )
+  useEffect(() => {
+    if(globalMessage.messages.length <= 1) return
+    const messageLastIndex = globalMessage.messages.length - 1
+    const lastMessage = globalMessage.messages[messageLastIndex]
+    if(lastMessage.role !== 'user') return
+    sendQuestion(currentSocket, globalMessage)
+  },[globalMessage, currentSocket, sendQuestion])
   return (
     <div className="w-full math-wrap">
       <div className="flex flex-col items-center justify-between w-full h-screen flex-column">
@@ -196,7 +209,8 @@ export default function App() {
               }
             }}
           />
-          <button
+          {/* !TEST 영역 */}
+          {/* <button
             disabled={updating || !inputText}
             className="px-4 py-2 font-bold text-white bg-red-500 rounded hover:bg-red-700"
             onClick={() => {
@@ -204,7 +218,7 @@ export default function App() {
             }}
           >
             전송
-          </button>
+          </button> */}
         </div>
       </div>
     </div>
