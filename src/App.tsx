@@ -187,7 +187,7 @@ export default function App({data}: {data: RequestDataType}) {
       max-w-full md:prose-base lg:prose-lg flex-1 overflow-y-auto`}
         >
           <div className="p-4 whitespace-pre-line">
-            <MathMarkDown history={postData?.messages} />
+            <MathMarkDown history={postData?.messages} parserType={'mathjax'} />
           </div>
         </div>
         {/* !TEST 영역 */}

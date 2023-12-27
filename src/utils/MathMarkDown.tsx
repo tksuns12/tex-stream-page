@@ -7,6 +7,7 @@ import remarkRehype from 'remark-rehype'
 import rehypeMathJax from 'rehype-mathjax/svg'
 import { MessageType } from '../types'
 import { divideMathFromText } from './parsers'
+import rehypeKatex from 'rehype-katex'
 
 const parseToMath = (content: string) => {
   if (!content) return ''
@@ -16,8 +17,10 @@ const parseToMath = (content: string) => {
 
 export default function MathMarkDown({
   history = [],
+  parserType = 'mathjax',
 }: {
-  history?: MessageType[]
+  history?: MessageType[],
+  parserType?: 'mathjax' | 'katex'
 }) {
   const answerMessage = useMemo(() => {
     const historyMessages = history
@@ -34,7 +37,7 @@ export default function MathMarkDown({
   return (
     <ReactMarkdown
       remarkPlugins={[remarkParse, remarkMath]}
-      rehypePlugins={[remarkRehype, rehypeMathJax, rehypeStringify]}
+      rehypePlugins={[remarkRehype, parserType === 'mathjax'? rehypeMathJax : rehypeKatex, rehypeStringify]}
       components={{
         text: ({ node, children, ...props }) => {
           return (

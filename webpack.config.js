@@ -36,7 +36,7 @@ module.exports = (env) => {
         template: './public/index.html',
         filename: 'index.html',
       }),
-      // new BundleAnalyzerPlugin()
+      new BundleAnalyzerPlugin()
     ],
     devServer: {
       static: {

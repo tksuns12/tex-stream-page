@@ -1,4 +1,4 @@
-용량이 엄청난데, 최적화는 일단 나중에 고려하는걸로
+용량이 엄청난데, 최적화는 일단 웹뷰니까, 필요시 고려하는걸로
 
 ## Install
 
@@ -37,6 +37,8 @@ postMessage(JSON.stringify({type: 'scrollHeight', height}))
 <br/>
 -
 <br/>
+
+<i> App.tsx의 190번 줄에 `parserType`으로 수식 렌더링 방식을 정할 수 있습니다. </i>
 
 <i>TEST 영역 주석은 Flutter에서 동작하길 원하는 코드는 웹에서 구현한 것</i>
 
