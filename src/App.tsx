@@ -153,6 +153,7 @@ export default function App({data}: {data: RequestDataType}) {
       currentText.current = ''
     }
   }, [])
+  // !TEST 영역
   const submitQuestion = useCallback(
     (value: string) => {
       value = value
@@ -164,11 +165,6 @@ export default function App({data}: {data: RequestDataType}) {
         inputRef.current.value = ''
       }
       set_inputText('')
-      const nextPostData: RequestDataType = {
-        ...postData,
-        messages: [...postData.messages, message],
-      }
-      // sendQuestion(currentSocket, nextPostData)
       window.addMessage(message)
       set_inputText('')
     },
@@ -194,7 +190,8 @@ export default function App({data}: {data: RequestDataType}) {
             <MathMarkDown history={postData?.messages} />
           </div>
         </div>
-        <div className="flex flex-row w-full gap-2 p-4">
+        {/* !TEST 영역 */}
+        {/* <div className="flex flex-row w-full gap-2 p-4">
           <input
             ref={inputRef}
             type="text"
@@ -210,8 +207,7 @@ export default function App({data}: {data: RequestDataType}) {
               }
             }}
           />
-          {/* !TEST 영역 */}
-          {/* <button
+          <button
             disabled={updating || !inputText}
             className="px-4 py-2 font-bold text-white bg-red-500 rounded hover:bg-red-700"
             onClick={() => {
@@ -219,8 +215,8 @@ export default function App({data}: {data: RequestDataType}) {
             }}
           >
             전송
-          </button> */}
-        </div>
+          </button>
+        </div> */}
       </div>
     </div>
   )
